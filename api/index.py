@@ -62,8 +62,11 @@ def process_image(image_data, character_id):
     layered_img = get_image(layers[0])
 
     for layer_url in layers[1:]:
-        img = get_image(layer_url)
-        layered_img = Image.alpha_composite(layered_img, img)
+        if(layer_url==""):
+            pass
+        else:
+            img = get_image(layer_url)
+            layered_img = Image.alpha_composite(layered_img, img)
     
     width, height = layered_img.size
     background_color = (187, 196, 225, 255)
@@ -111,9 +114,8 @@ async def upload_profile(data:dict):
         shutil.rmtree(request_folder)
 
         return {
-            "success": True,
             "characterId": character_id,
-            "ipfs_url": ipfs_url
+            "img_url": ipfs_url
         }
     
     except Exception as e:
