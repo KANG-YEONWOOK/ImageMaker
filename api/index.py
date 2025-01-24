@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],  # 허용할 HTTP 헤더
 )
 
-PROCESSED_FOLDER = "/tmp/processed"
+PROCESSED_FOLDER = "/tmp"
 
 def get_image(url):
     if(url == ""): return None
