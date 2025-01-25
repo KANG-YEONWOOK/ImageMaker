@@ -8,9 +8,12 @@ import requests
 
 PINATA_API_KEY = os.environ.get("PINATA_API_KEY")
 PINATA_API_SECRET = os.environ.get("PINATA_API_SECRET")
-PINATA_ENDPOINT = os.environ.get("PINATA_ENDPOINT")
+HEADER = {
+        "pinata_api_key": PINATA_API_KEY,
+        "pinata_secret_api_key": PINATA_API_SECRET,
+    }
 
-if not (PINATA_API_KEY and PINATA_API_SECRET and PINATA_ENDPOINT):
+if not (PINATA_API_KEY and PINATA_API_SECRET):
     raise RuntimeError("Missing PINATA API credentials or endpoint in environment variables")
 
 origins = [
@@ -40,7 +43,7 @@ def get_image(url):
 def process_image(image_data, character_id):
     request_folder = os.path.join(PROCESSED_FOLDER, character_id)
     os.makedirs(request_folder, exist_ok=True)
-    output_path = os.path.join(request_folder, "final_image.png")
+    output_path = os.path.join(request_folder, f"{character_id}.png")
 
     layers = [
         image_data["face"]["skinColor"]["imgurl"],
@@ -76,9 +79,7 @@ def process_image(image_data, character_id):
     layered_img = layered_img.resize((70,70))
     mask = Image.new("L", (70, 70), 0) 
     draw = ImageDraw.Draw(mask)
-    center_x, center_y = 35,35
-    radius = 35  # 원의 반지름
-    draw.ellipse((center_x - radius, center_y - radius, center_x + radius, center_y + radius), fill=255)
+    draw.ellipse((0,0,70,70), fill=255)
     layered_img = Image.composite(layered_img, Image.new("RGBA", (70, 70), (0, 0, 0, 0)), mask)
 
     layered_img.save(output_path, format="PNG")
@@ -87,37 +88,52 @@ def process_image(image_data, character_id):
     
 
 def upload_to_ipfs(file_path):
-    headers = {
-        "pinata_api_key": PINATA_API_KEY,
-        "pinata_secret_api_key": PINATA_API_SECRET,
-    }
     with open(file_path, "rb") as file:
         response = requests.post(
-            PINATA_ENDPOINT, headers=headers, files={"file": file}
+            "https://api.pinata.cloud/pinning/pinFileToIPFS", headers=HEADER, files={"file": file}
         )
     if response.status_code == 200:
         return response.json()["IpfsHash"]
     else:
         raise HTTPException(status_code=500, detail="IPFS upload failed")
-    
+
+
+def checkExistence(characterId):
+    response = requests.get(
+            "https://api.pinata.cloud/data/pinList?status=pinned", headers=HEADER
+        )
+    file_list = response.json()["rows"]
+    for file_info in file_list:
+        if(file_info["metadata"]["name"] == f"{characterId}.png"):
+            delete_response = requests.delete(f"https://api.pinata.cloud/pinning/unpin/{file_info["ipfs_pin_hash"]}", headers=HEADER)
+            return delete_response.text
+    return "OK"
+
 
 @app.post('/profile')
-async def upload_profile(data:dict):
+async def upload_profile(data:dict): # JSON구조 정해놓는거 필요
     try:
         character_id = data.get("characterId")
-        
+        check = checkExistence(character_id)
+        if(check != "OK"):
+            return {
+                "state": "Fail",
+                "characterId": "",
+                "img_url": ""
+            }
         processed_path, request_folder = process_image(data, character_id)
         
         ipfs_hash = upload_to_ipfs(processed_path)
-        ipfs_url = f"https://ipfs.io/ipfs/{ipfs_hash}"
+        ipfs_url = f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
         
         shutil.rmtree(request_folder)
 
         return {
+            "state": "Success",
             "characterId": character_id,
             "img_url": ipfs_url
         }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+        
