@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 from PIL import Image, ImageDraw
 from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import ValidationError
+from api.validation import Character
 import shutil
 import os
 import requests
@@ -98,7 +100,7 @@ def upload_to_ipfs(file_path):
         raise HTTPException(status_code=500, detail="IPFS upload failed")
 
 
-def checkExistence(characterId):
+def checkExistence(characterId): # 이미지가 존재하면 삭제하는 로직
     response = requests.get(
             "https://api.pinata.cloud/data/pinList?status=pinned", headers=HEADER
         )
@@ -111,7 +113,7 @@ def checkExistence(characterId):
 
 
 @app.post('/profile')
-async def upload_profile(data:dict): # JSON구조 정해놓는거 필요
+async def upload_profile(data:Character): # JSON구조 정해놓는거 필요
     try:
         character_id = data.get("characterId")
         check = checkExistence(character_id)
@@ -121,7 +123,7 @@ async def upload_profile(data:dict): # JSON구조 정해놓는거 필요
                 "characterId": "",
                 "img_url": ""
             }
-        processed_path, request_folder = process_image(data, character_id)
+        processed_path, request_folder = process_image(dict(data), character_id)
         
         ipfs_hash = upload_to_ipfs(processed_path)
         ipfs_url = f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
@@ -133,7 +135,7 @@ async def upload_profile(data:dict): # JSON구조 정해놓는거 필요
             "characterId": character_id,
             "img_url": ipfs_url
         }
-    
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=e.errors())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-        
