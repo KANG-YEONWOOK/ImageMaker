@@ -115,7 +115,7 @@ def checkExistence(characterId): # 이미지가 존재하면 삭제하는 로직
 @app.post('/profile')
 async def upload_profile(data:Character): # JSON구조 정해놓는거 필요
     try:
-        character_id = data.get("characterId")
+        character_id = data.characterId
         check = checkExistence(character_id)
         if(check != "OK"):
             return {
@@ -123,7 +123,7 @@ async def upload_profile(data:Character): # JSON구조 정해놓는거 필요
                 "characterId": "",
                 "img_url": ""
             }
-        processed_path, request_folder = process_image(dict(data), character_id)
+        processed_path, request_folder = process_image(data.model_dump(), character_id)
         
         ipfs_hash = upload_to_ipfs(processed_path)
         ipfs_url = f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
