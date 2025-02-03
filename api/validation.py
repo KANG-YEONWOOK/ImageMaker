@@ -22,7 +22,7 @@ class Item(BaseModel):
 
 class Character(BaseModel):
     userId: str = Field(..., min_length=1, description="length of characterId must be longer than 1")
-    username: str
+    userName: str
     birthDate: str
     backgroundName: str
     face: Face
