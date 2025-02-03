@@ -10,7 +10,7 @@ import requests
 
 PINATA_API_KEY = os.environ.get("PINATA_API_KEY")
 PINATA_API_SECRET = os.environ.get("PINATA_API_SECRET")
-PINATA_ENDPOINT = os.environ.get("PINATA_URL")
+PINATA_ENDPOINT = os.environ.get("PINATA_ENDPOINT")
 HEADER = {
         "pinata_api_key": PINATA_API_KEY,
         "pinata_secret_api_key": PINATA_API_SECRET,
