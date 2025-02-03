@@ -34,7 +34,7 @@ app.add_middleware(
 )
 
 def get_image(fileName):
-    url = f"{PINATA_ENDPOINT}{fileName}.png"
+    url = f"{PINATA_ENDPOINT}/{fileName}.png"
     if(url == ""): return None
     response = requests.get(url)
     if(response.status_code == 200):
