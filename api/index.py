@@ -32,8 +32,6 @@ app.add_middleware(
     allow_headers=["*"],  # 허용할 HTTP 헤더
 )
 
-PROCESSED_FOLDER = "/tmp"
-
 def get_image(url):
     if(url == ""): return None
     response = requests.get(url)
@@ -42,10 +40,12 @@ def get_image(url):
     else:
         return False
 
-def process_image(image_data, character_id):
-    request_folder = os.path.join(PROCESSED_FOLDER, character_id)
+def process_image(image_data, user_id):
+    temp_folder = f"/{user_id}"
+    request_folder = os.path.join(temp_folder, user_id)
     os.makedirs(request_folder, exist_ok=True)
-    output_path = os.path.join(request_folder, f"{character_id}.png")
+    profile_output_path = os.path.join(request_folder, f"{user_id}Profile.png")
+    character_output_path = os.path.join(request_folder, f"{user_id}.png")
 
     layers = [
         image_data["face"]["skinColor"]["imgurl"],
@@ -73,20 +73,21 @@ def process_image(image_data, character_id):
             img = get_image(layer_url)
             layered_img = Image.alpha_composite(layered_img, img)
     
+    layered_img.save(character_output_path, format="PNG")
     width, height = layered_img.size
     background_color = (187, 196, 225, 255)
     background_img = Image.new("RGBA", (width, height), background_color)
     layered_img = Image.alpha_composite(background_img, layered_img)
     layered_img = layered_img.crop((80,90,width-80,(3*height)//5 - 10))
-    layered_img = layered_img.resize((70,70))
-    mask = Image.new("L", (70, 70), 0) 
+    layered_img = layered_img.resize((120,120))
+    mask = Image.new("L", (120, 120), 0) 
     draw = ImageDraw.Draw(mask)
-    draw.ellipse((0,0,70,70), fill=255)
-    layered_img = Image.composite(layered_img, Image.new("RGBA", (70, 70), (0, 0, 0, 0)), mask)
+    draw.ellipse((0,0,120,120), fill=255)
+    layered_img = Image.composite(layered_img, Image.new("RGBA", (120, 120), (0, 0, 0, 0)), mask)
 
-    layered_img.save(output_path, format="PNG")
+    layered_img.save(profile_output_path, format="PNG")
 
-    return output_path, request_folder
+    return request_folder
     
 
 def upload_to_ipfs(file_path):
@@ -115,24 +116,24 @@ def checkExistence(characterId): # 이미지가 존재하면 삭제하는 로직
 @app.post('/profile')
 async def upload_profile(data:Character): # JSON구조 정해놓는거 필요
     try:
-        character_id = data.characterId
-        check = checkExistence(character_id)
+        user_id = data.userId
+        check = checkExistence(user_id)
         if(check != "OK"):
             return {
                 "state": "Fail",
                 "characterId": "",
                 "img_url": ""
             }
-        processed_path, request_folder = process_image(data.model_dump(), character_id)
+        request_folder = process_image(data.model_dump(), user_id)
         
-        ipfs_hash = upload_to_ipfs(processed_path)
+        ipfs_hash = upload_to_ipfs(request_folder)
         ipfs_url = f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
         
         shutil.rmtree(request_folder)
 
         return {
             "state": "Success",
-            "characterId": character_id,
+            "userId": user_id,
             "img_url": ipfs_url
         }
     except ValidationError as e:

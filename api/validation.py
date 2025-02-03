@@ -1,34 +1,30 @@
 from pydantic import BaseModel, Field
 
-class ItemData(BaseModel):
-    name: str
-    imgurl: str
-
 class Face(BaseModel):
-    skinColor: ItemData
-    hair: ItemData
-    expression: ItemData
+    skinColor: str
+    hair: str
+    expression: str
 
 class Outfit(BaseModel):
-    top: ItemData
-    bottom: ItemData
-    shoes: ItemData
+    top: str
+    bottom: str
+    shoes: str
 
 class Item(BaseModel):
-    head: ItemData
-    eyes: ItemData
-    ears: ItemData
-    neck: ItemData
-    leftWrist: ItemData
-    rightWrist: ItemData
-    leftHand: ItemData
-    rightHand: ItemData
+    head: str
+    eyes: str
+    ears: str
+    neck: str
+    leftWrist: str
+    rightWrist: str
+    leftHand: str
+    rightHand: str
 
 class Character(BaseModel):
-    characterId: str = Field(..., min_length=1, description="length of characterId must be longer than 1")
-    characterName: str
-    characterAge: int
+    userId: str = Field(..., min_length=1, description="length of characterId must be longer than 1")
+    username: str
+    birthDate: str
+    backgroundName: str
     face: Face
     outfit: Outfit
     item: Item
-    background: ItemData
