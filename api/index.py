@@ -10,6 +10,7 @@ import requests
 
 PINATA_API_KEY = os.environ.get("PINATA_API_KEY")
 PINATA_API_SECRET = os.environ.get("PINATA_API_SECRET")
+PINATA_ENDPOINT = os.environ.get("PINATA_URL")
 HEADER = {
         "pinata_api_key": PINATA_API_KEY,
         "pinata_secret_api_key": PINATA_API_SECRET,
@@ -48,20 +49,20 @@ def process_image(image_data, user_id):
     character_output_path = os.path.join(request_folder, f"{user_id}.png")
 
     layers = [
-        image_data["face"]["skinColor"]["imgurl"],
-        image_data["face"]["hair"]["imgurl"],
-        image_data["face"]["expression"]["imgurl"],
-        image_data["outfit"]["top"]["imgurl"],
-        image_data["outfit"]["bottom"]["imgurl"],
-        image_data["outfit"]["shoes"]["imgurl"],
-        image_data["item"]["head"]["imgurl"],
-        image_data["item"]["eyes"]["imgurl"],
-        image_data["item"]["ears"]["imgurl"],
-        image_data["item"]["neck"]["imgurl"],
-        image_data["item"]["leftWrist"]["imgurl"],
-        image_data["item"]["rightWrist"]["imgurl"],
-        image_data["item"]["leftHand"]["imgurl"],
-        image_data["item"]["rightHand"]["imgurl"],
+        f"{PINATA_ENDPOINT}{image_data["face"]["skinColor"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["face"]["hair"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["face"]["expression"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["outfit"]["top"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["outfit"]["bottom"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["outfit"]["shoes"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["head"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["eyes"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["ears"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["neck"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["leftWrist"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["rightWrist"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["leftHand"]}.png",
+        f"{PINATA_ENDPOINT}{image_data["item"]["rightHand"]}.png",
     ]
     
     layered_img = get_image(layers[0])
@@ -101,20 +102,20 @@ def upload_to_ipfs(file_path):
         raise HTTPException(status_code=500, detail="IPFS upload failed")
 
 
-def checkExistence(characterId): # 이미지가 존재하면 삭제하는 로직
+def checkExistence(user_id): # 이미지가 존재하면 삭제하는 로직
     response = requests.get(
             "https://api.pinata.cloud/data/pinList?status=pinned", headers=HEADER
         )
     file_list = response.json()["rows"]
     for file_info in file_list:
-        if(file_info["metadata"]["name"] == f"{characterId}.png"):
+        if(file_info["metadata"]["name"] == f"{user_id}"):
             delete_response = requests.delete(f"https://api.pinata.cloud/pinning/unpin/{file_info["ipfs_pin_hash"]}", headers=HEADER)
             return delete_response.text
     return "OK"
 
 
 @app.post('/profile')
-async def upload_profile(data:Character): # JSON구조 정해놓는거 필요
+async def upload_profile(data:Character):
     try:
         user_id = data.userId
         check = checkExistence(user_id)
