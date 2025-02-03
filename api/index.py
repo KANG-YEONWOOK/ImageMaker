@@ -53,8 +53,8 @@ def process_image(image_data, user_id):
         image_data["face"]["skinColor"],
         image_data["face"]["hair"],
         image_data["face"]["expression"],
-        image_data["outfit"]["top"],
         image_data["outfit"]["bottom"],
+        image_data["outfit"]["top"],
         image_data["outfit"]["shoes"],
         image_data["item"]["head"],
         image_data["item"]["eyes"],
@@ -107,13 +107,13 @@ def upload_to_ipfs(file_path):
         raise HTTPException(status_code=500, detail="IPFS upload failed")
 
 
-def checkExistence(user_id): # 이미지가 존재하면 삭제하는 로직
+def checkExistence(fileName): # 이미지가 존재하면 삭제하는 로직
     response = requests.get(
             "https://api.pinata.cloud/data/pinList?status=pinned", headers=HEADER
         )
     file_list = response.json()["rows"]
     for file_info in file_list:
-        if(file_info["metadata"]["name"] == f"{user_id}"):
+        if(file_info["metadata"]["name"] == f"{fileName}.png"):
             delete_response = requests.delete(f"https://api.pinata.cloud/pinning/unpin/{file_info["ipfs_pin_hash"]}", headers=HEADER)
             return delete_response.text
     return "OK"
@@ -123,13 +123,15 @@ def checkExistence(user_id): # 이미지가 존재하면 삭제하는 로직
 async def upload_profile(data:Character):
     try:
         user_id = data.userId
-        check = checkExistence(user_id)
-        if(check != "OK"):
-            return {
-                "state": "Fail",
-                "characterId": "",
-                "img_url": ""
-            }
+        fileNames = [user_id, f"{user_id}Profile"]
+        for fileName in fileNames:
+            check = checkExistence(fileName)
+            if(check != "OK"):
+                return {
+                    "state": "Fail",
+                    "characterId": "",
+                    "img_url": ""
+                }
         profile_output_path, character_output_path, request_folder = process_image(data.model_dump(), user_id)
         
         profile_ipfs_hash = upload_to_ipfs(profile_output_path)
