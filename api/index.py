@@ -127,11 +127,7 @@ async def upload_profile(data:Character):
         for fileName in fileNames:
             check = checkExistence(fileName)
             if(check != "OK"):
-                return {
-                    "state": "Fail",
-                    "characterId": "",
-                    "img_url": ""
-                }
+                raise HTTPException(status_code=500, detail="Failure occured while delete image")
         profile_output_path, character_output_path, request_folder = process_image(data.model_dump(), user_id)
         
         profile_ipfs_hash = upload_to_ipfs(profile_output_path)
