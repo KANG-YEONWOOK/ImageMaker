@@ -33,7 +33,8 @@ app.add_middleware(
     allow_headers=["*"],  # 허용할 HTTP 헤더
 )
 
-def get_image(url):
+def get_image(fileName):
+    url = f"{PINATA_ENDPOINT}{fileName}.png"
     if(url == ""): return None
     response = requests.get(url)
     if(response.status_code == 200):
@@ -49,22 +50,21 @@ def process_image(image_data, user_id):
     character_output_path = os.path.join(request_folder, f"{user_id}.png")
 
     layers = [
-        f"{PINATA_ENDPOINT}{image_data["face"]["skinColor"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["face"]["hair"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["face"]["expression"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["outfit"]["top"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["outfit"]["bottom"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["outfit"]["shoes"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["head"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["eyes"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["ears"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["neck"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["leftWrist"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["rightWrist"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["leftHand"]}.png",
-        f"{PINATA_ENDPOINT}{image_data["item"]["rightHand"]}.png",
+        image_data["face"]["skinColor"],
+        image_data["face"]["hair"],
+        image_data["face"]["expression"],
+        image_data["outfit"]["top"],
+        image_data["outfit"]["bottom"],
+        image_data["outfit"]["shoes"],
+        image_data["item"]["head"],
+        image_data["item"]["eyes"],
+        image_data["item"]["ears"],
+        image_data["item"]["neck"],
+        image_data["item"]["leftWrist"],
+        image_data["item"]["rightWrist"],
+        image_data["item"]["leftHand"],
+        image_data["item"]["rightHand"],
     ]
-    print(layers)
     
     layered_img = get_image(layers[0])
 
