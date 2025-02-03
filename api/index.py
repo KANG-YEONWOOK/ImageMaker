@@ -138,7 +138,6 @@ async def upload_profile(data:Character):
         shutil.rmtree(request_folder)
 
         return {
-            "state": "Success",
             "userId": user_id,
             "profile": profile_ipfs_url,
             "character": character_ipfs_url
