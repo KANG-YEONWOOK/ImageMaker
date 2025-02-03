@@ -73,6 +73,8 @@ def process_image(image_data, user_id):
             pass
         else:
             img = get_image(layer_url)
+            width, height = layered_img.size
+            img = img.resize((width,height))
             layered_img = Image.alpha_composite(layered_img, img)
     
     layered_img.save(character_output_path, format="PNG")
