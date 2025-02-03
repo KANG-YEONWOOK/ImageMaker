@@ -42,7 +42,7 @@ def get_image(url):
         return False
 
 def process_image(image_data, user_id):
-    temp_folder = f"/{user_id}"
+    temp_folder = "/tmp"
     request_folder = os.path.join(temp_folder, user_id)
     os.makedirs(request_folder, exist_ok=True)
     profile_output_path = os.path.join(request_folder, f"{user_id}Profile.png")
