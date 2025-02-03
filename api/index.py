@@ -64,6 +64,7 @@ def process_image(image_data, user_id):
         f"{PINATA_ENDPOINT}{image_data["item"]["leftHand"]}.png",
         f"{PINATA_ENDPOINT}{image_data["item"]["rightHand"]}.png",
     ]
+    print(layers)
     
     layered_img = get_image(layers[0])
 
@@ -75,20 +76,21 @@ def process_image(image_data, user_id):
             layered_img = Image.alpha_composite(layered_img, img)
     
     layered_img.save(character_output_path, format="PNG")
+    
     width, height = layered_img.size
     background_color = (187, 196, 225, 255)
     background_img = Image.new("RGBA", (width, height), background_color)
     layered_img = Image.alpha_composite(background_img, layered_img)
     layered_img = layered_img.crop((80,90,width-80,(3*height)//5 - 10))
     layered_img = layered_img.resize((120,120))
-    mask = Image.new("L", (120, 120), 0) 
+    mask = Image.new("L", (120, 120), 0)
     draw = ImageDraw.Draw(mask)
     draw.ellipse((0,0,120,120), fill=255)
     layered_img = Image.composite(layered_img, Image.new("RGBA", (120, 120), (0, 0, 0, 0)), mask)
 
     layered_img.save(profile_output_path, format="PNG")
 
-    return request_folder
+    return profile_output_path, character_output_path, request_folder
     
 
 def upload_to_ipfs(file_path):
@@ -97,6 +99,7 @@ def upload_to_ipfs(file_path):
             "https://api.pinata.cloud/pinning/pinFileToIPFS", headers=HEADER, files={"file": file}
         )
     if response.status_code == 200:
+        print(response.json()["IpfsHash"])
         return response.json()["IpfsHash"]
     else:
         raise HTTPException(status_code=500, detail="IPFS upload failed")
@@ -125,17 +128,20 @@ async def upload_profile(data:Character):
                 "characterId": "",
                 "img_url": ""
             }
-        request_folder = process_image(data.model_dump(), user_id)
+        profile_output_path, character_output_path, request_folder = process_image(data.model_dump(), user_id)
         
-        ipfs_hash = upload_to_ipfs(request_folder)
-        ipfs_url = f"https://gateway.pinata.cloud/ipfs/{ipfs_hash}"
+        profile_ipfs_hash = upload_to_ipfs(profile_output_path)
+        character_ipfs_hash = upload_to_ipfs(character_output_path)
+        profile_ipfs_url = f"https://gateway.pinata.cloud/ipfs/{profile_ipfs_hash}"
+        character_ipfs_url = f"https://gateway.pinata.cloud/ipfs/{character_ipfs_hash}"
         
         shutil.rmtree(request_folder)
 
         return {
             "state": "Success",
             "userId": user_id,
-            "img_url": ipfs_url
+            "profile": profile_ipfs_url,
+            "character": character_ipfs_url
         }
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=e.errors())
