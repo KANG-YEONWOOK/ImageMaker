@@ -24,7 +24,7 @@ class Character(BaseModel):
     userId: str = Field(..., min_length=1, description="length of characterId must be longer than 1")
     userName: str
     birthDate: str
-    backgroundName: str
+    starBackground: str
     face: Face
     outfit: Outfit
     item: Item
