@@ -21,6 +21,7 @@ if not (PINATA_API_KEY and PINATA_API_SECRET):
 
 origins = [
     "http://pleiades-front-deploy.s3-website.ap-northeast-2.amazonaws.com",
+    "https://your-pleiades.com"
 ]
 
 app = FastAPI()
