@@ -70,7 +70,7 @@ def process_image(image_data, user_id):
     layered_img = get_image(layers[0])
 
     for layer_url in layers[1:]:
-        if(layer_url==""):
+        if(layer_url=="" or layer_url==None):
             pass
         else:
             img = get_image(layer_url)

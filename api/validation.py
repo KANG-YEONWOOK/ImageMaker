@@ -12,14 +12,14 @@ class Outfit(BaseModel):
     shoes: str
 
 class Item(BaseModel):
-    head: Optional[str] = ""
-    eyes: Optional[str] = ""
-    ears: Optional[str] = ""
-    neck: Optional[str] = ""
-    leftWrist: Optional[str] = ""
-    rightWrist: Optional[str] = ""
-    leftHand: Optional[str] = ""
-    rightHand: Optional[str] = ""
+    head: Optional[str] = None
+    eyes: Optional[str] = None
+    ears: Optional[str] = None
+    neck: Optional[str] = None
+    leftWrist: Optional[str] = None
+    rightWrist: Optional[str] = None
+    leftHand: Optional[str] = None
+    rightHand: Optional[str] = None
 
 class Character(BaseModel):
     userId: str = Field(..., min_length=1, description="length of characterId must be longer than 1")
