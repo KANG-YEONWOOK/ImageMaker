@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field
 
 class Face(BaseModel):
@@ -11,14 +12,14 @@ class Outfit(BaseModel):
     shoes: str
 
 class Item(BaseModel):
-    head: str
-    eyes: str
-    ears: str
-    neck: str
-    leftWrist: str
-    rightWrist: str
-    leftHand: str
-    rightHand: str
+    head: Optional[str] = ""
+    eyes: Optional[str] = ""
+    ears: Optional[str] = ""
+    neck: Optional[str] = ""
+    leftWrist: Optional[str] = ""
+    rightWrist: Optional[str] = ""
+    leftHand: Optional[str] = ""
+    rightHand: Optional[str] = ""
 
 class Character(BaseModel):
     userId: str = Field(..., min_length=1, description="length of characterId must be longer than 1")
