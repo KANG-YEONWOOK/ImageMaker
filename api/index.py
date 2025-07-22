@@ -72,15 +72,22 @@ def process_image(image_data, user_id):
     ]
     
     layered_img = get_image(layers[0])
+    if layered_img is False:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch base image: {layers[0]}")
+    if layered_img is None:
+        raise HTTPException(status_code=400, detail=f"Base image is required: {layers[0]}")
 
     for layer_url in layers[1:]:
         if(layer_url=="" or layer_url==None):
             pass
         else:
             img = get_image(layer_url)
-            width, height = layered_img.size
-            img = img.resize((width,height))
-            layered_img = Image.alpha_composite(layered_img, img)
+            if img is False:
+                raise HTTPException(status_code=500, detail=f"Failed to fetch image: {layer_url}")
+            if img is not None:
+                width, height = layered_img.size
+                img = img.resize((width,height))
+                layered_img = Image.alpha_composite(layered_img, img)
     
     layered_img.save(character_output_path, format="PNG")
     
